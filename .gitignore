@@ -1,0 +1,46 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Build output
+[Bb]in/
+[Oo]bj/
+**/[Bb]in/
+**/[Oo]bj/
+
+# Rider / ReSharper optional
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+# NuGet
+*.nupkg
+packages/
+
+# .NET / MAUI / Android build artifacts
+*.apk
+*.aab
+*.idsig
+*.ap_
+*.dex
+*.class
+*.so
+*.aar
+
+# Generated QR/card output
+CardsOutput/
+ClassicHitster.CardGenerator/bin/
+ClassicHitster.CardGenerator/obj/
+ClassicHitster.CardGenerator/**/CardsOutput/
+
+# Local generated reports from audio preparation
+audio_copy_report.csv
+audio_missing.csv
+audio_ambiguous.csv
+
+# OS files
+.DS_Store
+Thumbs.db

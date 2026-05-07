@@ -1,0 +1,57 @@
+[
+  {
+    "id": "bach_001",
+    "title": "Toccata und Fuge d-Moll BWV 565",
+    "composer": "Johann Sebastian Bach",
+    "year": 1704,
+    "isApproximateYear": true,
+    "era": "Barock",
+    "performer": "Demo-Audiodatei ersetzen",
+    "audioFile": "bach_001.wav",
+    "notes": "Demo-Eintrag. Später durch echten Clip ersetzen."
+  },
+  {
+    "id": "vivaldi_001",
+    "title": "Le quattro stagioni: La primavera",
+    "composer": "Antonio Vivaldi",
+    "year": 1725,
+    "isApproximateYear": false,
+    "era": "Barock",
+    "performer": "Demo-Audiodatei ersetzen",
+    "audioFile": "vivaldi_001.wav",
+    "notes": "Für das Spiel zählt das Werk-/Publikationsjahr, nicht das Spotify-Release-Jahr."
+  },
+  {
+    "id": "mozart_001",
+    "title": "Eine kleine Nachtmusik KV 525",
+    "composer": "Wolfgang Amadeus Mozart",
+    "year": 1787,
+    "isApproximateYear": false,
+    "era": "Klassik",
+    "performer": "Demo-Audiodatei ersetzen",
+    "audioFile": "mozart_001.wav",
+    "notes": "Demo-Eintrag."
+  },
+  {
+    "id": "beethoven_001",
+    "title": "Sinfonie Nr. 5 c-Moll op. 67",
+    "composer": "Ludwig van Beethoven",
+    "year": 1808,
+    "isApproximateYear": false,
+    "era": "Klassik / frühe Romantik",
+    "performer": "Demo-Audiodatei ersetzen",
+    "audioFile": "beethoven_001.wav",
+    "notes": "Uraufführungsjahr."
+  },
+  {
+    "id": "debussy_001",
+    "title": "Clair de lune aus Suite bergamasque",
+    "composer": "Claude Debussy",
+    "year": 1905,
+    "isApproximateYear": false,
+    "era": "Impressionismus",
+    "performer": "Demo-Audiodatei ersetzen",
+    "audioFile": "debussy_001.wav",
+    "notes": "Publikationsjahr der Suite bergamasque."
+  }
+]
