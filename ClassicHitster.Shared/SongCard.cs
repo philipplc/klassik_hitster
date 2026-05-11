@@ -13,6 +13,10 @@ public sealed class SongCard
     public string? Performer { get; init; }
     public required string AudioFile { get; init; }
     public string? Notes { get; init; }
+    public string? Work { get; init; }
+    public string? Piece { get; init; }
+    public string? ComposerShortName { get; init; }
+    public string? PremierDate { get; init; }
 
     public string YearDisplay => IsApproximateYear
         ? $"ca. {Year.ToString(CultureInfo.InvariantCulture)}"
