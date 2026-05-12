@@ -19,6 +19,8 @@ public sealed class PlayerPage : ContentPage
 
     private SongCard? currentSong;
     private string? cardId;
+    private bool isPaused;
+    private Button? pauseButton;
 
     public string? CardId
     {
@@ -55,17 +57,31 @@ public sealed class PlayerPage : ContentPage
         var playButton = CreatePrimaryButton("▶ Abspielen");
         playButton.Clicked += Play;
 
-        var pauseButton = CreateSecondaryButton("⏸ Pause");
+        pauseButton = CreateSecondaryButton("⏸ Pause");
         pauseButton.Clicked += (_, _) =>
         {
-            player.Pause();
-            statusLabel.Text = "Pausiert.";
+            if (isPaused)
+            {
+                player.Resume();
+                isPaused = false;
+                pauseButton.Text = "⏸ Pause";
+                statusLabel.Text = "Spielt ab. Jetzt raten: Jahr / Komponist / Titel.";
+            }
+            else
+            {
+                player.Pause();
+                isPaused = true;
+                pauseButton.Text = "▶ Weiter";
+                statusLabel.Text = "Pausiert.";
+            }
         };
 
         var stopButton = CreateSecondaryButton("⏹ Stop");
         stopButton.Clicked += (_, _) =>
         {
             player.Stop();
+            isPaused = false;
+            pauseButton!.Text = "⏸ Pause";
             statusLabel.Text = "Gestoppt.";
         };
 
@@ -189,6 +205,8 @@ public sealed class PlayerPage : ContentPage
         try
         {
             await player.PlayAsync(currentSong);
+            isPaused = false;
+            pauseButton!.Text = "⏸ Pause";
             statusLabel.Text = "Spielt ab. Jetzt raten: Jahr / Komponist / Titel.";
         }
         catch (FileNotFoundException)
@@ -209,7 +227,18 @@ public sealed class PlayerPage : ContentPage
         }
 
         composerLabel.Text = $"Komponist: {currentSong.Composer}";
-        workLabel.Text = $"Werk/Titel: {currentSong.Title}";
+
+        var titleAndWork = currentSong.Work is not null
+            && !string.Equals(currentSong.Title, currentSong.Work, StringComparison.Ordinal);
+        if (titleAndWork)
+        {
+            workLabel.Text = $"Titel: {currentSong.Title}\nWerk: {currentSong.Work}";
+        }
+        else
+        {
+            workLabel.Text = $"Titel: {currentSong.Title}";
+        }
+
         yearLabel.Text = $"Jahr: {currentSong.YearDisplay}";
         eraLabel.Text = string.IsNullOrWhiteSpace(currentSong.Era) ? string.Empty : $"Epoche: {currentSong.Era}";
         performerLabel.Text = string.IsNullOrWhiteSpace(currentSong.Performer) ? string.Empty : $"Aufnahme/Interpret: {currentSong.Performer}";
