@@ -15,6 +15,7 @@ public sealed class ScannerPage : ContentPage
     {
         Title = "QR-Code scannen";
         BackgroundColor = Color.FromArgb("#161219");
+        Shell.SetNavBarIsVisible(this, false);
 
         statusLabel = new Label
         {
@@ -38,27 +39,34 @@ public sealed class ScannerPage : ContentPage
         };
         cameraView.BarcodesDetected += OnBarcodesDetected;
 
-        var torchButton = new Button
+        var torchButton = new ImageButton
         {
-            Text = "Licht an/aus",
-            FontSize = 15,
-            TextColor = Colors.White,
+            Source = "icon_flashlight.png",
             BackgroundColor = Color.FromArgb("#342843"),
-            CornerRadius = 16,
-            HeightRequest = 48
+            CornerRadius = 22,
+            WidthRequest = 48,
+            HeightRequest = 48,
+            Padding = 8
         };
         torchButton.Clicked += (_, _) => cameraView.IsTorchOn = !cameraView.IsTorchOn;
 
-        var manualButton = new Button
+        var settingsButton = new ImageButton
         {
-            Text = "ID manuell eingeben",
-            FontSize = 15,
-            TextColor = Colors.White,
+            Source = "icon_settings.png",
             BackgroundColor = Color.FromArgb("#342843"),
-            CornerRadius = 16,
-            HeightRequest = 48
+            CornerRadius = 22,
+            WidthRequest = 48,
+            HeightRequest = 48,
+            Padding = 8
         };
-        manualButton.Clicked += EnterIdManually;
+        settingsButton.Clicked += async (_, _) => await Shell.Current.GoToAsync(nameof(MainPage));
+
+        var bottomBar = new HorizontalStackLayout
+        {
+            Spacing = 12,
+            HorizontalOptions = LayoutOptions.Center,
+            Children = { torchButton, settingsButton }
+        };
 
         Content = new Grid
         {
@@ -69,7 +77,7 @@ public sealed class ScannerPage : ContentPage
             },
             Children =
             {
-                cameraView,
+                cameraView.AssignToGridRow(0),
                 new Border
                 {
                     BackgroundColor = Color.FromArgb("#CC161219"),
@@ -78,12 +86,11 @@ public sealed class ScannerPage : ContentPage
                     Margin = new Thickness(16),
                     Content = new VerticalStackLayout
                     {
-                        Spacing = 10,
+                        Spacing = 12,
                         Children =
                         {
                             statusLabel,
-                            torchButton,
-                            manualButton
+                            bottomBar
                         }
                     }
                 }.AssignToGridRow(1)
@@ -143,17 +150,6 @@ public sealed class ScannerPage : ContentPage
         });
     }
 
-    private async void EnterIdManually(object? sender, EventArgs e)
-    {
-        var value = await DisplayPromptAsync("Karten-ID", "ID oder kompletten QR-Code-Inhalt eingeben:", "Öffnen", "Abbrechen");
-        var cardId = CardPayload.TryExtractCardId(value);
-        if (cardId is null)
-        {
-            return;
-        }
-
-        await Shell.Current.GoToAsync($"{nameof(PlayerPage)}?id={Uri.EscapeDataString(cardId)}");
-    }
 }
 
 internal static class ViewGridExtensions

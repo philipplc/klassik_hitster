@@ -92,6 +92,14 @@ public sealed class SongListPage : ContentPage
                 }
             };
 
+            var tapGesture = new TapGestureRecognizer();
+            var songId = song.Id;
+            tapGesture.Tapped += async (_, _) =>
+            {
+                await Shell.Current.GoToAsync($"{nameof(PlayerPage)}?id={Uri.EscapeDataString(songId)}");
+            };
+            card.GestureRecognizers.Add(tapGesture);
+
             listLayout.Children.Add(card);
         }
     }

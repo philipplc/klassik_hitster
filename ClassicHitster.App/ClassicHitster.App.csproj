@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0-android</TargetFramework>
     <OutputType>Exe</OutputType>
@@ -9,7 +9,7 @@
     <Nullable>enable</Nullable>
     <LangVersion>12.0</LangVersion>
 
-    <ApplicationTitle>Classic Hitster</ApplicationTitle>
+    <ApplicationTitle>Klassik Hitster</ApplicationTitle>
     <ApplicationId>de.philipp.classichitster</ApplicationId>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
     <ApplicationVersion>1</ApplicationVersion>
@@ -17,8 +17,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#2B1B47" />
-    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#2B1B47" BaseSize="128,128" />
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appicon.svg" Color="#2B1B47" />
+    <MauiSplashScreen Include="Resources\AppIcon\appicon.svg" Color="#2B1B47" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
     <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     <MauiAsset Include="..\Data\songs.json" LogicalName="songs.json" />
   </ItemGroup>

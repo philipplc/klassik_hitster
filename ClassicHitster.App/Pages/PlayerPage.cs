@@ -7,8 +7,6 @@ namespace ClassicHitster.App.Pages;
 public sealed class PlayerPage : ContentPage
 {
     private readonly LocalAudioSongPlayer player = new();
-    private readonly Label titleLabel;
-    private readonly Label statusLabel;
     private readonly VerticalStackLayout revealLayout;
     private readonly Label composerLabel;
     private readonly Label workLabel;
@@ -20,7 +18,8 @@ public sealed class PlayerPage : ContentPage
     private SongCard? currentSong;
     private string? cardId;
     private bool isPaused;
-    private Button? pauseButton;
+    private bool isPlaying;
+    private readonly ImageButton playPauseButton;
 
     public string? CardId
     {
@@ -28,7 +27,7 @@ public sealed class PlayerPage : ContentPage
         set
         {
             cardId = value is null ? null : Uri.UnescapeDataString(value);
-            _ = LoadSongAsync();
+            _ = LoadAndPlayAsync();
         }
     }
 
@@ -36,60 +35,7 @@ public sealed class PlayerPage : ContentPage
     {
         Title = "Karte";
         BackgroundColor = Color.FromArgb("#161219");
-
-        titleLabel = new Label
-        {
-            Text = "Karte wird geladen ...",
-            FontSize = 26,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.White,
-            HorizontalTextAlignment = TextAlignment.Center
-        };
-
-        statusLabel = new Label
-        {
-            Text = "Noch nicht abgespielt.",
-            FontSize = 15,
-            TextColor = Color.FromArgb("#D6C9E6"),
-            HorizontalTextAlignment = TextAlignment.Center
-        };
-
-        var playButton = CreatePrimaryButton("▶ Abspielen");
-        playButton.Clicked += Play;
-
-        pauseButton = CreateSecondaryButton("⏸ Pause");
-        pauseButton.Clicked += (_, _) =>
-        {
-            if (isPaused)
-            {
-                player.Resume();
-                isPaused = false;
-                pauseButton.Text = "⏸ Pause";
-                statusLabel.Text = "Spielt ab. Jetzt raten: Jahr / Komponist / Titel.";
-            }
-            else
-            {
-                player.Pause();
-                isPaused = true;
-                pauseButton.Text = "▶ Weiter";
-                statusLabel.Text = "Pausiert.";
-            }
-        };
-
-        var stopButton = CreateSecondaryButton("⏹ Stop");
-        stopButton.Clicked += (_, _) =>
-        {
-            player.Stop();
-            isPaused = false;
-            pauseButton!.Text = "⏸ Pause";
-            statusLabel.Text = "Gestoppt.";
-        };
-
-        var revealButton = CreateSecondaryButton("Auflösung anzeigen");
-        revealButton.Clicked += (_, _) => RevealSolution();
-
-        var scanAgainButton = CreateSecondaryButton("Neue Karte scannen");
-        scanAgainButton.Clicked += async (_, _) => await GoToScannerAsync();
+        Shell.SetNavBarIsVisible(this, false);
 
         composerLabel = CreateRevealLabel();
         workLabel = CreateRevealLabel();
@@ -104,6 +50,7 @@ public sealed class PlayerPage : ContentPage
             Spacing = 8,
             Padding = new Thickness(18),
             BackgroundColor = Color.FromArgb("#241B30"),
+            HorizontalOptions = LayoutOptions.Fill,
             Children =
             {
                 new Label
@@ -122,36 +69,55 @@ public sealed class PlayerPage : ContentPage
             }
         };
 
-        Content = new ScrollView
+        playPauseButton = new ImageButton
         {
-            Content = new VerticalStackLayout
+            Source = "icon_playold.png",
+            BackgroundColor = Colors.Transparent,
+            WidthRequest = 100,
+            HeightRequest = 100,
+            HorizontalOptions = LayoutOptions.Center
+        };
+        playPauseButton.Clicked += OnPlayPauseTapped;
+
+        var revealButton = CreateSecondaryButton("Auflösung");
+        revealButton.Clicked += (_, _) => RevealSolution();
+
+        var scanAgainButton = CreateSecondaryButton("Neue Karte");
+        scanAgainButton.Clicked += async (_, _) => await GoToScannerAsync();
+
+        var bottomButtons = new Grid
+        {
+            ColumnDefinitions =
             {
-                Padding = new Thickness(24, 36, 24, 24),
-                Spacing = 16,
-                Children =
-                {
-                    titleLabel,
-                    statusLabel,
-                    new BoxView { HeightRequest = 8, Opacity = 0 },
-                    playButton,
-                    new Grid
-                    {
-                        ColumnDefinitions =
-                        {
-                            new ColumnDefinition(GridLength.Star),
-                            new ColumnDefinition(GridLength.Star)
-                        },
-                        ColumnSpacing = 12,
-                        Children =
-                        {
-                            pauseButton.AssignToGridColumn(0),
-                            stopButton.AssignToGridColumn(1)
-                        }
-                    },
-                    revealButton,
-                    revealLayout,
-                    scanAgainButton
-                }
+                new ColumnDefinition(GridLength.Star),
+                new ColumnDefinition(GridLength.Star)
+            },
+            ColumnSpacing = 12,
+            HorizontalOptions = LayoutOptions.Fill,
+            Children =
+            {
+                revealButton.AssignToGridColumn(0),
+                scanAgainButton.AssignToGridColumn(1)
+            }
+        };
+
+        Content = new Grid
+        {
+            RowDefinitions =
+            {
+                new RowDefinition(GridLength.Star),
+                new RowDefinition(GridLength.Auto),
+                new RowDefinition(GridLength.Auto),
+                new RowDefinition(GridLength.Auto)
+            },
+            Padding = new Thickness(24, 24, 24, 40),
+            RowSpacing = 16,
+            Children =
+            {
+                new BoxView { Opacity = 0 }.AssignToGridRow(0),
+                revealLayout.AssignToGridRow(1),
+                playPauseButton.AssignToGridRow(2),
+                bottomButtons.AssignToGridRow(3)
             }
         };
     }
@@ -165,10 +131,9 @@ public sealed class PlayerPage : ContentPage
     private static async Task GoToScannerAsync()
     {
         await Shell.Current.Navigation.PopToRootAsync();
-        await Shell.Current.GoToAsync(nameof(ScannerPage));
     }
 
-    private async Task LoadSongAsync()
+    private async Task LoadAndPlayAsync()
     {
         try
         {
@@ -177,37 +142,32 @@ public sealed class PlayerPage : ContentPage
 
             if (currentSong is null)
             {
-                titleLabel.Text = "Unbekannte Karte";
-                statusLabel.Text = string.IsNullOrWhiteSpace(cardId)
-                    ? "Keine Karten-ID übergeben."
-                    : $"Die Karten-ID '{cardId}' steht nicht in songs.json.";
+                await DisplayAlert("Unbekannte Karte",
+                    string.IsNullOrWhiteSpace(cardId)
+                        ? "Keine Karten-ID übergeben."
+                        : $"Die Karten-ID '{cardId}' steht nicht in songs.json.",
+                    "OK");
                 return;
             }
 
-            titleLabel.Text = "Karte erkannt";
-            statusLabel.Text = "Drücke Abspielen. Die Lösung bleibt verborgen.";
+            await PlayCurrentSong();
         }
         catch (Exception ex)
         {
-            titleLabel.Text = "Fehler";
-            statusLabel.Text = ex.Message;
+            await DisplayAlert("Fehler", ex.Message, "OK");
         }
     }
 
-    private async void Play(object? sender, EventArgs e)
+    private async Task PlayCurrentSong()
     {
-        if (currentSong is null)
-        {
-            await DisplayAlert("Keine Karte", "Es wurde kein gültiger Song geladen.", "OK");
-            return;
-        }
+        if (currentSong is null) return;
 
         try
         {
             await player.PlayAsync(currentSong);
+            isPlaying = true;
             isPaused = false;
-            pauseButton!.Text = "⏸ Pause";
-            statusLabel.Text = "Spielt ab. Jetzt raten: Jahr / Komponist / Titel.";
+            playPauseButton.Source = "icon_pauseold.png";
         }
         catch (FileNotFoundException)
         {
@@ -219,25 +179,41 @@ public sealed class PlayerPage : ContentPage
         }
     }
 
-    private void RevealSolution()
+    private void OnPlayPauseTapped(object? sender, EventArgs e)
     {
-        if (currentSong is null)
+        if (currentSong is null) return;
+
+        if (!isPlaying)
         {
+            _ = PlayCurrentSong();
             return;
         }
+
+        if (isPaused)
+        {
+            player.Resume();
+            isPaused = false;
+            playPauseButton.Source = "icon_pauseold.png";
+        }
+        else
+        {
+            player.Pause();
+            isPaused = true;
+            playPauseButton.Source = "icon_playold.png";
+        }
+    }
+
+    private void RevealSolution()
+    {
+        if (currentSong is null) return;
 
         composerLabel.Text = $"Komponist: {currentSong.Composer}";
 
         var titleAndWork = currentSong.Work is not null
             && !string.Equals(currentSong.Title, currentSong.Work, StringComparison.Ordinal);
-        if (titleAndWork)
-        {
-            workLabel.Text = $"Titel: {currentSong.Title}\nWerk: {currentSong.Work}";
-        }
-        else
-        {
-            workLabel.Text = $"Titel: {currentSong.Title}";
-        }
+        workLabel.Text = titleAndWork
+            ? $"Titel: {currentSong.Title}\nWerk: {currentSong.Work}"
+            : $"Titel: {currentSong.Title}";
 
         yearLabel.Text = $"Jahr: {currentSong.YearDisplay}";
         eraLabel.Text = string.IsNullOrWhiteSpace(currentSong.Era) ? string.Empty : $"Epoche: {currentSong.Era}";
@@ -256,20 +232,6 @@ public sealed class PlayerPage : ContentPage
         {
             FontSize = 15,
             TextColor = Color.FromArgb("#E9DEF8")
-        };
-    }
-
-    private static Button CreatePrimaryButton(string text)
-    {
-        return new Button
-        {
-            Text = text,
-            FontSize = 18,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.White,
-            BackgroundColor = Color.FromArgb("#6E3BD4"),
-            CornerRadius = 18,
-            HeightRequest = 56
         };
     }
 

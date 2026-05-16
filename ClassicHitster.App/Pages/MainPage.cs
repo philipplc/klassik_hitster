@@ -1,4 +1,5 @@
 using ClassicHitster.App.Services;
+using ClassicHitster.Shared;
 
 namespace ClassicHitster.App.Pages;
 
@@ -8,12 +9,12 @@ public sealed class MainPage : ContentPage
 
     public MainPage()
     {
-        Title = "Classic Hitster";
+        Title = "Einstellungen";
         BackgroundColor = Color.FromArgb("#161219");
 
         var titleLabel = new Label
         {
-            Text = "Classic Hitster",
+            Text = "Klassik Hitster",
             FontSize = 34,
             FontAttributes = FontAttributes.Bold,
             TextColor = Colors.White,
@@ -28,14 +29,11 @@ public sealed class MainPage : ContentPage
             HorizontalTextAlignment = TextAlignment.Center
         };
 
-        var scanButton = CreatePrimaryButton("QR-Code scannen");
-        scanButton.Clicked += async (_, _) => await Shell.Current.GoToAsync(nameof(ScannerPage));
-
-        var demoButton = CreateSecondaryButton("Demo-Karte öffnen");
-        demoButton.Clicked += OpenDemoCard;
-
         var listButton = CreateSecondaryButton("Songliste anzeigen");
         listButton.Clicked += async (_, _) => await Shell.Current.GoToAsync(nameof(SongListPage));
+
+        var manualButton = CreateSecondaryButton("ID manuell eingeben");
+        manualButton.Clicked += EnterIdManually;
 
         var hintLabel = new Label
         {
@@ -45,6 +43,17 @@ public sealed class MainPage : ContentPage
             HorizontalTextAlignment = TextAlignment.Center
         };
 
+        var backButton = new Button
+        {
+            Text = "← Zurück",
+            FontSize = 16,
+            TextColor = Colors.White,
+            BackgroundColor = Colors.Transparent,
+            HorizontalOptions = LayoutOptions.Start,
+            Padding = new Thickness(0)
+        };
+        backButton.Clicked += async (_, _) => await Shell.Current.Navigation.PopAsync();
+
         Content = new ScrollView
         {
             Content = new VerticalStackLayout
@@ -53,12 +62,12 @@ public sealed class MainPage : ContentPage
                 Spacing = 18,
                 Children =
                 {
+                    backButton,
                     titleLabel,
                     subtitleLabel,
                     new BoxView { HeightRequest = 10, Opacity = 0 },
-                    scanButton,
-                    demoButton,
                     listButton,
+                    manualButton,
                     new BoxView { HeightRequest = 16, Opacity = 0 },
                     hintLabel
                 }
@@ -81,37 +90,16 @@ public sealed class MainPage : ContentPage
         }
     }
 
-    private async void OpenDemoCard(object? sender, EventArgs e)
+    private async void EnterIdManually(object? sender, EventArgs e)
     {
-        try
+        var value = await DisplayPromptAsync("Karten-ID", "ID oder kompletten QR-Code-Inhalt eingeben:", "Öffnen", "Abbrechen");
+        var cardId = CardPayload.TryExtractCardId(value);
+        if (cardId is null)
         {
-            var firstSong = (await SongCatalog.GetSongsAsync()).FirstOrDefault();
-            if (firstSong is null)
-            {
-                await DisplayAlert("Keine Songs", "Die Songliste ist leer.", "OK");
-                return;
-            }
-
-            await Shell.Current.GoToAsync($"{nameof(PlayerPage)}?id={Uri.EscapeDataString(firstSong.Id)}");
+            return;
         }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Fehler", ex.Message, "OK");
-        }
-    }
 
-    private static Button CreatePrimaryButton(string text)
-    {
-        return new Button
-        {
-            Text = text,
-            FontSize = 18,
-            FontAttributes = FontAttributes.Bold,
-            TextColor = Colors.White,
-            BackgroundColor = Color.FromArgb("#6E3BD4"),
-            CornerRadius = 18,
-            HeightRequest = 56
-        };
+        await Shell.Current.GoToAsync($"{nameof(PlayerPage)}?id={Uri.EscapeDataString(cardId)}");
     }
 
     private static Button CreateSecondaryButton(string text)
