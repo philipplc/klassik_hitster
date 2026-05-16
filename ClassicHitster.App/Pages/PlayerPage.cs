@@ -71,7 +71,7 @@ public sealed class PlayerPage : ContentPage
 
         playPauseButton = new ImageButton
         {
-            Source = "icon_playold.png",
+            Source = "icon_play.png",
             BackgroundColor = Colors.Transparent,
             WidthRequest = 100,
             HeightRequest = 100,
@@ -167,7 +167,7 @@ public sealed class PlayerPage : ContentPage
             await player.PlayAsync(currentSong);
             isPlaying = true;
             isPaused = false;
-            playPauseButton.Source = "icon_pauseold.png";
+            playPauseButton.Source = "icon_pause.png";
         }
         catch (FileNotFoundException)
         {
@@ -193,13 +193,13 @@ public sealed class PlayerPage : ContentPage
         {
             player.Resume();
             isPaused = false;
-            playPauseButton.Source = "icon_pauseold.png";
+            playPauseButton.Source = "icon_pause.png";
         }
         else
         {
             player.Pause();
             isPaused = true;
-            playPauseButton.Source = "icon_playold.png";
+            playPauseButton.Source = "icon_play.png";
         }
     }
 
